@@ -1,47 +1,38 @@
 # Security Notice
 
-## API Key Management
+## API Key 관리
 
-**NEVER commit API keys to Git!**
+**절대 Git에 API 키를 커밋하지 마세요!**
 
 ### Setup
 
-1. Copy `.env.example` to `.env`:
 ```bash
 cp .env.example .env
+# Edit .env with your actual keys
 ```
 
-2. Add your actual API keys to `.env`:
+`.env`:
 ```
 GHOST_URL=https://your-blog.ghost.io
 GHOST_ADMIN_API_KEY=your_actual_key_here
 ```
 
-3. Verify `.env` is in `.gitignore`:
-```bash
-cat .gitignore | grep .env
-```
+### API Key 노출 시
 
-### If API Keys Are Exposed
-
-If you accidentally commit API keys:
-
-1. **Immediately regenerate** all exposed keys
-2. Update `.env` with new keys
-3. Never use the old keys again
-4. Consider using GitHub's secret scanning alerts
+1. **즉시 재발급** - Ghost Admin에서 새 키 생성
+2. `.env` 업데이트
+3. 절대 노출된 키 재사용 금지
 
 ### Ghost Admin API Key
 
-Get your key from:
 `https://your-blog.ghost.io/ghost/#/settings/integrations`
 
-### Verify Security
+### 커밋 전 확인
 
-Before committing:
 ```bash
-# Check for hardcoded secrets
-grep -r "GHOST_ADMIN_API_KEY.*=" --include="*.js" --include="*.py" .
+# .env가 .gitignore에 있는지 확인
+cat .gitignore | grep .env
 
-# Should only show .env.example (with placeholder values)
+# 하드코딩된 키 검색 (없어야 함)
+grep -r "GHOST_ADMIN_API_KEY.*=" --include="*.js" .
 ```
