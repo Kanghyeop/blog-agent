@@ -4,10 +4,16 @@ const https = require('https');
 const http = require('http');
 const { URL } = require('url');
 const { marked } = require('marked');
+require('dotenv').config();
 
-// Ghost configuration
-const GHOST_URL = 'https://aiden.ghost.io';
-const GHOST_ADMIN_API_KEY = '69522d3df6f30a000125b42c:4098e3fcf0d8fb0428c8c3dfe6f18e5eed47f4142a803abcf1461fae1c10ba90';
+// Ghost configuration from environment variables
+const GHOST_URL = process.env.GHOST_URL || 'https://aiden.ghost.io';
+const GHOST_ADMIN_API_KEY = process.env.GHOST_ADMIN_API_KEY;
+
+if (!GHOST_ADMIN_API_KEY) {
+    console.error('Error: GHOST_ADMIN_API_KEY not found in .env file');
+    process.exit(1);
+}
 
 function createJWT(apiKey) {
     const [id, secret] = apiKey.split(':');
