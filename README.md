@@ -25,32 +25,28 @@ cp .env.example .env
 
 ### Translate an Article
 
-**Option 1: Interactive Pipeline (Recommended)**
+**Just ask Claude Code directly:**
 
-```bash
-node run.js https://www.paulgraham.com/field.html
+```
+이거 번역해서 발행해줘: https://www.paulgraham.com/field.html
 ```
 
-This will guide you through:
-1. Extract content (via Claude Code WebFetch)
-2. Translate to Korean (you can choose Haiku or Sonnet)
-3. Publish to Ghost
-4. Commit and push to GitHub
+Or for cost savings (95% cheaper):
 
-**Option 2: Manual Steps**
+```
+이거 Haiku로 번역해서 발행해줘: https://example.com/article
+```
+
+Claude Code will automatically:
+1. ✅ Extract content with WebFetch
+2. ✅ Translate to Korean (Haiku or Sonnet)
+3. ✅ Publish to Ghost
+4. ✅ Commit and push to GitHub
+
+**Alternative: Manual Pipeline**
 
 ```bash
-# 1. Ask Claude Code to extract
-"Extract from <URL> to output/original.md"
-
-# 2. Ask Claude Code to translate (Haiku for cost savings)
-"Use Task tool with model='haiku' to translate output/original.md"
-
-# 3. Publish
-node publish.js
-
-# 4. Commit
-git add -A && git commit -m "Translate: [title]" && git push
+node run.js <URL>  # Interactive step-by-step guide
 ```
 
 ## Cost Comparison
