@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(node scripts/update-thumbnail.js:*)",
+      "Bash(node .claude/skills/ghost-publish/scripts/update-thumbnail.js:*)",
+      "WebFetch(domain:www.paulgraham.com)",
+      "Bash(test:*)",
+      "Bash(node .claude/skills/translate-article/scripts/clean-workspace.js:*)",
+      "WebSearch",
+      "Bash(curl:*)",
+      "Bash(findstr:*)",
+      "Bash(node:*)"
+    ]
+  }
+}

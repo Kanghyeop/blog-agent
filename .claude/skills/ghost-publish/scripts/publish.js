@@ -62,16 +62,63 @@ function extractTitle(md) {
     return match ? match[1] : 'Untitled';
 }
 
-async function publishToGhost(title, htmlContent) {
+async function uploadImage(imagePath) {
+    const FormData = require('form-data');
+    const token = createJWT(GHOST_ADMIN_API_KEY);
+    const apiUrl = new URL('/ghost/api/admin/images/upload/', GHOST_URL);
+
+    const form = new FormData();
+    form.append('file', fs.createReadStream(imagePath));
+
+    return new Promise((resolve, reject) => {
+        const client = apiUrl.protocol === 'https:' ? https : http;
+
+        const req = client.request({
+            hostname: apiUrl.hostname,
+            path: apiUrl.pathname,
+            method: 'POST',
+            headers: {
+                'Authorization': `Ghost ${token}`,
+                ...form.getHeaders()
+            }
+        }, (res) => {
+            let data = '';
+
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+
+            res.on('end', () => {
+                if (res.statusCode >= 200 && res.statusCode < 300) {
+                    const result = JSON.parse(data);
+                    resolve(result.images[0].url);
+                } else {
+                    reject(new Error(`Image upload failed: HTTP ${res.statusCode}: ${data}`));
+                }
+            });
+        });
+
+        req.on('error', reject);
+        form.pipe(req);
+    });
+}
+
+async function publishToGhost(title, htmlContent, featureImage = null) {
     const token = createJWT(GHOST_ADMIN_API_KEY);
     const apiUrl = new URL('/ghost/api/admin/posts/?source=html', GHOST_URL);
 
+    const postPayload = {
+        title: title,
+        html: htmlContent,
+        status: 'published'
+    };
+
+    if (featureImage) {
+        postPayload.feature_image = featureImage;
+    }
+
     const postData = JSON.stringify({
-        posts: [{
-            title: title,
-            html: htmlContent,
-            status: 'published'
-        }]
+        posts: [postPayload]
     });
 
     const options = {
@@ -121,6 +168,7 @@ async function main() {
         // Save timestamped versions for archival
         const timestampedOriginal = generateFilename('original', originalTitle);
         const timestampedTranslation = generateFilename('translation', originalTitle);
+        const timestampedThumbnail = generateFilename('thumbnail', originalTitle, 'png');
 
         fs.writeFileSync(path.join('output', timestampedOriginal), originalContent);
         fs.writeFileSync(path.join('output', timestampedTranslation), mdContent);
@@ -129,20 +177,41 @@ async function main() {
         console.log(`  ${timestampedOriginal}`);
         console.log(`  ${timestampedTranslation}`);
 
+        // Upload thumbnail if it exists
+        let featureImageUrl = null;
+        const thumbnailPath = path.join('output', 'thumbnail-latest.png');
+        const timestampedThumbnailPath = path.join('output', timestampedThumbnail);
+
+        if (fs.existsSync(thumbnailPath)) {
+            console.log(`\nUploading thumbnail...`);
+            featureImageUrl = await uploadImage(thumbnailPath);
+            console.log(`✓ Thumbnail uploaded: ${featureImageUrl}`);
+
+            // Save timestamped thumbnail
+            fs.copyFileSync(thumbnailPath, timestampedThumbnailPath);
+            console.log(`✓ Saved: ${timestampedThumbnail}`);
+        } else {
+            console.log('\nWarning: No thumbnail found (thumbnail-latest.png)');
+            console.log('  Run generate-thumbnail.js first to create one');
+        }
+
         // Prepare for publishing
         const title = `[번역] ${originalTitle}`;
         const htmlContent = markdownToHTML(mdContent);
 
         console.log(`\nPublishing: ${title}`);
 
-        // Publish
-        const result = await publishToGhost(title, htmlContent);
+        // Publish with feature image
+        const result = await publishToGhost(title, htmlContent, featureImageUrl);
 
         const post = result.posts[0];
         console.log('✓ Published successfully!');
         console.log(`  Post ID: ${post.id}`);
         console.log(`  URL: ${post.url}`);
         console.log(`  Status: ${post.status}`);
+        if (featureImageUrl) {
+            console.log(`  Feature Image: ${featureImageUrl}`);
+        }
     } catch (error) {
         console.error('Error:', error.message);
         process.exit(1);

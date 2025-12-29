@@ -15,9 +15,11 @@ Complete workflow for translating English articles to Korean and publishing to G
 이거 번역해서 발행해줘: https://example.com/article
 ```
 
-For cost savings (95% cheaper):
+**Model Selection** (specify quality/cost preference):
 ```
-이거 Haiku로 번역해서 발행해줘: https://example.com/article
+이거 Haiku로 번역해서 발행해줘: https://example.com/article   # Cost-efficient (default)
+이거 Sonnet으로 번역해서 발행해줘: https://example.com/article # High-quality
+이거 Opus로 번역해서 발행해줘: https://example.com/article    # Best quality
 ```
 
 ## Workflow Steps
@@ -26,13 +28,16 @@ For cost savings (95% cheaper):
 Use WebFetch to extract article from URL → save to `output/original.md`
 
 ### 2. Translate
-Spawn Haiku agent using Task tool for cost-efficient translation:
+Spawn translation agent using Task tool:
 - Read `output/original.md`
-- Translate to Korean with Task tool (model: haiku)
-- Add translation notice with original URL
+- Translate to Korean with Task tool (model: haiku|sonnet|opus)
+- Add translation notice with original URL AND model name
 - Save to `output/translation.md`
 
-**Cost**: ~$0.002/article with Haiku vs ~$0.05 with Sonnet
+**Model Options**:
+- **Haiku** (default): ~$0.002/article - Cost-efficient, good quality
+- **Sonnet**: ~$0.05/article - High-quality, recommended for complex content
+- **Opus**: ~$0.35/article - Best quality, for critical translations
 
 ### 3. Generate Thumbnail
 Run thumbnail generator (2000x1200px, black bg, white text):
@@ -57,7 +62,7 @@ git push origin master
 
 ## Translation Guidelines
 
-1. Add notice: `> **번역 안내**: 이 글은 [원문](URL)을 한국어로 번역한 글입니다.`
+1. Add notice with model info: `> **번역 안내**: 이 글은 [원문](URL)을 Claude [Model Name]로 번역한 글입니다.`
 2. Title format: `[번역] Original English Title`
 3. Preserve markdown formatting
 4. Keep code blocks unchanged
@@ -80,5 +85,12 @@ cd .claude/skills/translate-article && node scripts/run.js <URL>
 
 Translation helper:
 ```bash
-cd .claude/skills/translate-article && node scripts/translate.js <URL>
+cd .claude/skills/translate-article && node scripts/translate.js <URL> [--model=haiku|sonnet|opus]
+```
+
+Examples:
+```bash
+node scripts/translate.js https://example.com/article                # Haiku (default)
+node scripts/translate.js https://example.com/article --model=sonnet # Sonnet
+node scripts/translate.js https://example.com/article --model=opus   # Opus
 ```

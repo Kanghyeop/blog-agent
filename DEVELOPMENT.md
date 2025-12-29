@@ -82,6 +82,23 @@ package.json        의존성
 
 ---
 
+## 📊 Phase Index (Quick Navigation)
+
+| Phase | Focus | Status | Key Changes | Impact |
+|-------|-------|--------|-------------|--------|
+| [1](#phase-1-프로젝트-초기화-순수-cli-도구) | 프로젝트 초기화 | ✅ | publish.js, run.js, translate.js | Foundation: Node.js + Ghost API + Haiku |
+| [2](#phase-2-ghost-api-통합-문제-해결) | Ghost API 수정 | ✅ | source=html 파라미터 추가 | Fixed: 빈 포스트 문제 해결 |
+| [3](#phase-3-제목-중복-문제) | 제목 중복 해결 | ✅ | H1 제거 로직 추가 | UX: 제목 중복 표시 제거 |
+| [4](#phase-4-비용-최적화) | 비용 최적화 | ✅ | Haiku 모델 전환 | Cost: 95% 절감 ($0.05 → $0.002) |
+| [5](#phase-5-보안-문제-발견-및-해결) | API 키 보안 | ✅ | .env + SECURITY.md | Security: 키 노출 방지 |
+| [6](#phase-6-mcp-서버-통합-시도-이후-롤백됨) | MCP 통합 시도 | ⏮️ Rollback | Next.js + Vercel MCP | Lesson: 생태계 안정성 검증 필요 |
+| [7](#phase-7-타임스탬프-아카이브--썸네일-자동-생성) | Archive & Thumbnail | ✅ | 타임스탬프 + Canvas 썸네일 | Feature: 자동 아카이빙 + 2000x1200 썸네일 |
+| [8](#phase-8-claude-code-skill-구조로-완전-리팩토링) | Skill 구조 전환 | ✅ | .claude/skills/ + 문서 압축 | Architecture: -450 lines, +modularity |
+
+**Legend**: ✅ Complete | ⏮️ Rolled back
+
+---
+
 ## 📝 개발 단계
 
 ### Phase 1: 프로젝트 초기화 (순수 CLI 도구)

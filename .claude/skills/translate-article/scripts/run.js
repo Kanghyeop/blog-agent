@@ -7,6 +7,7 @@
 
 const { execSync } = require('child_process');
 const readline = require('readline');
+const { cleanWorkspace } = require('./clean-workspace');
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -31,6 +32,13 @@ async function main() {
     console.log('=========================================');
     console.log('Blog Agent Translation Pipeline');
     console.log('=========================================\n');
+
+    // Clean workspace before starting
+    console.log('Step 0: Cleaning workspace...');
+    console.log('-------------------------------------------');
+    cleanWorkspace();
+    console.log('');
+
     console.log(`Article URL: ${articleUrl}\n`);
 
     // Step 1: Extraction
