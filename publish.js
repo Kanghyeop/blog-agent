@@ -27,8 +27,26 @@ function createJWT(apiKey) {
 }
 
 function markdownToHTML(md) {
+    // Remove the first H1 heading to avoid duplication with Ghost post title
+    // Ghost already displays the title, so we don't need it in the content
+    const lines = md.split('\n');
+    let contentWithoutTitle = [];
+    let foundFirstH1 = false;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        // Skip the first H1 heading (# Title)
+        if (!foundFirstH1 && line.startsWith('# ')) {
+            foundFirstH1 = true;
+            continue;
+        }
+        contentWithoutTitle.push(lines[i]);
+    }
+
+    const contentMd = contentWithoutTitle.join('\n').trim();
+
     // Use marked library for proper markdown conversion
-    return marked(md);
+    return marked(contentMd);
 }
 
 function extractTitle(md) {
