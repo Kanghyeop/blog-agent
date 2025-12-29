@@ -4,6 +4,73 @@
 
 ---
 
+## 📋 재사용 가능한 메타 패턴 (다른 프로젝트에 복사해서 사용)
+
+### 🔐 API 키 & 보안 관리
+```
+.env.example  (Git 포함, 템플릿)
+.env          (Git 제외, 실제 키)
+SECURITY.md   (키 관리 가이드)
+```
+
+### 🤖 Claude Code Skill 구조
+```
+.claude/skills/skill-name/
+├── SKILL.md              # 500줄 이하, What+When+Keywords
+├── reference.md          # 상세 문서 (optional)
+├── examples.md           # 사용 예제 (optional)
+└── scripts/              # 실행만, 읽지 않음 (토큰 절약)
+    └── helper.js
+```
+
+### 📚 문서 계층
+```
+README.md         Quick Start (최소한)
+WORKFLOW.md       간단 사용법
+CLAUDE.md         개발자 가이드
+SECURITY.md       보안 가이드
+DEVELOPMENT.md    개발 과정 아카이빙 (이 파일)
+```
+
+### 🚀 배포 워크플로우
+```bash
+# 1. 작업 완료
+# 2. DEVELOPMENT.md에 Phase 추가
+# 3. Git 커밋 (메타데이터 포함)
+git commit -m "Title
+
+- Change 1
+- Change 2
+
+🤖 Generated with Claude Code
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+```
+
+### 💰 비용 최적화
+```
+WebFetch:  0 token (콘텐츠 추출)
+Haiku:     ~$0.002/작업 (Task tool 사용)
+Scripts:   0 token (실행만)
+```
+
+### 📖 문서 압축 원칙
+- 50% 목표 (정보 손실 없이)
+- 테이블/리스트 활용
+- 중복 제거
+- 필수 정보만
+
+### 🏗️ 깔끔한 루트 폴더
+```
+.claude/skills/     모든 기능 (스킬)
+output/             결과물
+utils.js            공유 유틸 (1-2개만)
+*.md                문서 (5-6개)
+package.json        의존성
+.env.example        설정 템플릿
+```
+
+---
+
 ## 🎯 프로젝트 목표
 
 영문 기술 블로그를 한국어로 번역하여 Ghost 블로그에 자동으로 발행하는 도구
@@ -450,6 +517,199 @@ Article 2: The Shape of the Essay Field
 - Ghost Admin API의 이미지 업로드 엔드포인트 사용법
 - 타임스탬프를 활용한 아카이빙 전략
 - 하위 호환성을 유지하면서 새 기능 추가하기
+
+---
+
+### Phase 8: Claude Code Skill 구조로 완전 리팩토링
+
+**프롬프트:**
+```
+그리고 지금까지 짠 모든 코드를 claude 공식으로 권장하는 skill 구조대로 해서
+정리를 한번 리팩토링 하고 넘어가자 내 readme에서도 이런 md 파일이 있는지
+존재도 안 알려주고 하고 있짢아
+```
+
+**사용자 요구사항:**
+1. Claude 공식 skill 구조 적용
+2. README에서 모든 문서 파일 명확히 노출
+3. 루트 폴더 정리 (불필요한 파일 제거)
+4. MD 파일들을 절반 길이로 압축 (필수 정보만)
+
+**단계 1: Skill Generator 리서치**
+
+claude-code-guide 에이전트로 공식 문서 확인:
+
+**공식 Skill 구조:**
+```
+.claude/skills/skill-name/
+├── SKILL.md              # Required: metadata + instructions
+├── reference.md          # Optional: detailed docs
+├── examples.md           # Optional: usage examples
+└── scripts/
+    └── helper.js         # Executable utilities (run, don't load)
+```
+
+**SKILL.md 템플릿:**
+```yaml
+---
+name: skill-name
+description: What it does AND when to use it. Include keywords users would say.
+allowed-tools: Read, Write, Bash
+model: haiku  # Optional
+---
+
+# Skill Display Name
+
+## Instructions
+Step-by-step guidance
+
+## Scripts
+Run utilities (not read):
+```bash
+node scripts/helper.js
+```
+```
+
+**핵심 원칙:**
+- Progressive Disclosure: SKILL.md은 500줄 이하로 압축
+- Scripts는 실행만, context에 로드하지 않음 (토큰 절약)
+- Description에 자연어 트리거 키워드 포함
+
+**단계 2: Skill Generator Skill 생성**
+
+`.claude/skills/skill-generator/SKILL.md` 생성:
+- 새 스킬 생성 가이드
+- SKILL.md 템플릿 제공
+- Best practices 문서화
+- 메타 스킬 (스킬을 만드는 스킬)
+
+**단계 3: 기존 Skills 리팩토링**
+
+**translate-article/**
+```
+scripts/
+  ├── run.js           # Interactive 6-step pipeline
+  └── translate.js     # Translation workflow helper
+SKILL.md              # Main workflow instructions
+```
+
+**ghost-publish/**
+```
+scripts/
+  ├── publish.js       # Ghost API publisher
+  └── file-utils.js    # Filename utilities
+SKILL.md
+```
+
+**thumbnail-generator/**
+```
+scripts/
+  ├── generate-thumbnail.js  # Canvas-based generator
+  └── file-utils.js
+SKILL.md
+```
+
+각 SKILL.md 업데이트:
+- 스크립트 실행 방법 명시 (읽기 X)
+- 상대 경로로 스크립트 참조
+- Description에 한국어 트리거 추가 ("번역해서 발행해줘")
+
+**단계 4: MD 문서 압축 (50% 이하)**
+
+| 파일 | Before | After | 감축률 |
+|------|--------|-------|--------|
+| CLAUDE.md | 344 lines | 138 lines | 60% ↓ |
+| README.md | 140 lines | 87 lines | 38% ↓ |
+| WORKFLOW.md | 45 lines | 27 lines | 40% ↓ |
+| SECURITY.md | 48 lines | 38 lines | 21% ↓ |
+
+압축 원칙:
+- 필수 정보만 유지
+- 중복 제거
+- 테이블 형식 활용
+- 예제 코드 간소화
+
+**단계 5: 루트 폴더 대청소**
+
+**삭제된 파일 (9개):**
+```
+❌ run.js                    → .claude/skills/translate-article/scripts/
+❌ translate.js              → .claude/skills/translate-article/scripts/
+❌ publish.js                → .claude/skills/ghost-publish/scripts/
+❌ generate-thumbnail.js     → .claude/skills/thumbnail-generator/scripts/
+❌ translate_and_publish.js  (중복, 구버전)
+❌ retroactive-apply.js      (일회성 스크립트)
+❌ update-ghost-thumbnails.js (일회성 스크립트)
+❌ run.sh                    (구버전 shell script)
+❌ session7-content.md       (임시 파일)
+❌ append-development.js     (헬퍼, 더이상 불필요)
+❌ src/                      (빈 디렉토리)
+```
+
+**남은 파일 (필수만):**
+```
+✅ 문서: README.md, CLAUDE.md, WORKFLOW.md, SECURITY.md, DEVELOPMENT.md
+✅ 설정: .env, .env.example, .gitignore, package.json, package-lock.json
+✅ 유틸: file-utils.js (공유 라이브러리)
+✅ 스킬: .claude/skills/ (모든 기능)
+✅ 출력: output/
+```
+
+**단계 6: README 재정리**
+
+Before:
+- 구버전 스크립트 레퍼런스
+- 산만한 섹션 구성
+
+After:
+- 📚 Documentation 섹션 (테이블 형식)
+- 🎯 Skills 섹션 (4개 스킬 명시)
+- 💰 Cost Comparison (명확한 권장사항)
+- 🏗️ Project Structure (skill 기반)
+
+**최종 결과:**
+
+**커밋 3개:**
+1. `cdd179f` - Skill 구조 리팩토링 + MD 압축
+2. `5be7324` - Scripts 이동 + 루트 정리
+3. `cee6b9c` - README 정리
+
+**변경 통계:**
+```
+Total: 23 files changed
++715 insertions
+-1,165 deletions (코드 450줄 감축!)
+```
+
+**교훈:**
+
+1. **Progressive Disclosure의 힘**
+   - SKILL.md: 핵심만 (500줄 이하)
+   - reference.md: 상세 문서
+   - scripts/: 실행 전용 (context에 로드 안함)
+   - 토큰 사용량 대폭 감소
+
+2. **Scripts vs Context**
+   - 스크립트를 읽지 말고 실행만
+   - "node scripts/helper.js" 패턴
+   - 일관성 있는 동작 보장
+   - 토큰 낭비 방지
+
+3. **Description이 생명**
+   - "What it does" + "When to use it" + "Keywords"
+   - 자연어 트리거: "번역해서 발행해줘"
+   - Claude가 자동으로 skill 매칭
+
+4. **Meta-Documentation의 가치**
+   - skill-generator: 스킬을 만드는 스킬
+   - 재사용 가능한 패턴 문서화
+   - 다른 프로젝트에 적용 가능
+
+5. **문서 압축의 기술**
+   - 50% 압축해도 정보 손실 없음
+   - 테이블, 리스트 활용
+   - 중복 제거가 핵심
+   - 가독성 오히려 향상
 
 ---
 
