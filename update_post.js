@@ -8,6 +8,7 @@ const { marked } = require('marked');
 // Ghost configuration
 const GHOST_URL = 'https://aiden.ghost.io';
 const GHOST_ADMIN_API_KEY = '69522d3df6f30a000125b42c:4098e3fcf0d8fb0428c8c3dfe6f18e5eed47f4142a803abcf1461fae1c10ba90';
+const POST_ID = '69523a12f6f30a000125b43d'; // The empty post we need to update
 
 function createJWT(apiKey) {
     const [id, secret] = apiKey.split(':');
@@ -27,7 +28,6 @@ function createJWT(apiKey) {
 }
 
 function markdownToHTML(md) {
-    // Use marked library for proper markdown conversion
     return marked(md);
 }
 
@@ -36,22 +36,22 @@ function extractTitle(md) {
     return match ? match[1] : 'Untitled';
 }
 
-async function publishToGhost(title, htmlContent) {
+async function updateGhostPost(postId, title, htmlContent) {
     const token = createJWT(GHOST_ADMIN_API_KEY);
-    const apiUrl = new URL('/ghost/api/admin/posts/', GHOST_URL);
+    const apiUrl = new URL(`/ghost/api/admin/posts/${postId}/`, GHOST_URL);
 
     const postData = JSON.stringify({
         posts: [{
             title: title,
             html: htmlContent,
-            status: 'published'
+            updated_at: new Date().toISOString()
         }]
     });
 
     const options = {
         hostname: apiUrl.hostname,
         path: apiUrl.pathname,
-        method: 'POST',
+        method: 'PUT',
         headers: {
             'Authorization': `Ghost ${token}`,
             'Content-Type': 'application/json',
@@ -92,13 +92,14 @@ async function main() {
         const title = extractTitle(mdContent);
         const htmlContent = markdownToHTML(mdContent);
 
-        console.log(`Publishing: ${title}`);
+        console.log(`Updating post: ${title}`);
+        console.log(`Post ID: ${POST_ID}`);
 
-        // Publish
-        const result = await publishToGhost(title, htmlContent);
+        // Update post
+        const result = await updateGhostPost(POST_ID, title, htmlContent);
 
         const post = result.posts[0];
-        console.log('✓ Published successfully!');
+        console.log('✓ Updated successfully!');
         console.log(`  Post ID: ${post.id}`);
         console.log(`  URL: ${post.url}`);
         console.log(`  Status: ${post.status}`);
