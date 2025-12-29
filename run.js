@@ -50,8 +50,18 @@ async function main() {
     console.log('   "Use Task tool with model=\\"haiku\\" to translate"\n');
     await prompt('Press Enter when translation is complete...');
 
-    // Step 3: Publish
-    console.log('\nStep 3: Publishing to Ghost');
+    // Step 3: Generate Thumbnail
+    console.log('\nStep 3: Generating Thumbnail');
+    console.log('-------------------------------------------');
+    try {
+        execSync('node generate-thumbnail.js', { stdio: 'inherit' });
+    } catch (error) {
+        console.error('❌ Thumbnail generation failed!');
+        console.log('   Continuing anyway...');
+    }
+
+    // Step 4: Publish
+    console.log('\nStep 4: Publishing to Ghost');
     console.log('-------------------------------------------');
     try {
         execSync('node publish.js', { stdio: 'inherit' });
@@ -60,8 +70,8 @@ async function main() {
         process.exit(1);
     }
 
-    // Step 4: Git commit
-    console.log('\nStep 4: Committing to Git');
+    // Step 5: Git commit
+    console.log('\nStep 5: Committing to Git');
     console.log('-------------------------------------------');
 
     const fs = require('fs');
@@ -74,7 +84,8 @@ async function main() {
     const commitMessage = `Translate: ${title}
 
 - Extracted from: ${articleUrl}
-- Translation saved to output/translation.md`;
+- Translation saved to output/translation.md
+- Thumbnail generated`;
 
     try {
         execSync('git add -A', { stdio: 'inherit' });
@@ -83,8 +94,8 @@ async function main() {
         console.error('Note: Git commit may have failed (files might be unchanged)');
     }
 
-    // Step 5: Push
-    console.log('\nStep 5: Pushing to GitHub');
+    // Step 6: Push
+    console.log('\nStep 6: Pushing to GitHub');
     console.log('-------------------------------------------');
     try {
         execSync('git push origin master', { stdio: 'inherit' });

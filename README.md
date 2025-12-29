@@ -59,10 +59,37 @@ node run.js <URL>  # Interactive step-by-step guide
 
 **Recommendation**: Use Haiku for 95% cost savings with excellent quality.
 
+## Features
+
+### Automatic Thumbnail Generation
+
+Blog Agent automatically generates thumbnails for your Ghost blog posts:
+
+- **Size**: 2000x1200px (Ghost recommended feature image size)
+- **Design**: Minimalist black background with white text
+- **Content**: Extracted from article title/keywords
+- **Font**: System fonts with Korean support (Pretendard, Malgun Gothic, etc.)
+
+Generate manually:
+```bash
+node generate-thumbnail.js
+```
+
+### Timestamped Archives
+
+All translations are automatically archived with timestamps:
+- Format: `{prefix}-{short-title}-{YYYYMMDD-HHMMSS}.{ext}`
+- Example: `original-how-to-be-successful-20231229-143022.md`
+- Keeps `original.md` and `translation.md` as latest for backward compatibility
+
 ## Output
 
-- `output/original.md`: Extracted English content
-- `output/translation.md`: Korean translation with notice
+- `output/original.md`: Latest extracted English content
+- `output/translation.md`: Latest Korean translation with notice
+- `output/original-{title}-{timestamp}.md`: Timestamped archive of original
+- `output/translation-{title}-{timestamp}.md`: Timestamped archive of translation
+- `output/thumbnail-{title}-{timestamp}.png`: Generated thumbnail (2000x1200px)
+- `output/thumbnail-latest.png`: Latest thumbnail for easy access
 - Ghost post: `[번역] Original Title`
 - Git commit with article info
 
@@ -70,12 +97,19 @@ node run.js <URL>  # Interactive step-by-step guide
 
 ```
 blog-agent/
-├── run.js              # Interactive pipeline script
-├── publish.js          # Ghost publishing
-├── translate.js        # Translation workflow helper
-├── output/             # Translation files
-│   ├── original.md
-│   └── translation.md
-├── CLAUDE.md           # Documentation for Claude Code
-└── README.md           # This file
+├── run.js                   # Interactive pipeline script (6 steps)
+├── publish.js               # Ghost publishing (auto-saves timestamped files)
+├── generate-thumbnail.js    # Thumbnail generator (2000x1200px)
+├── file-utils.js            # Filename utilities (timestamps, slugs)
+├── translate.js             # Translation workflow helper
+├── output/                  # Translation files
+│   ├── original.md          # Latest original
+│   ├── translation.md       # Latest translation
+│   ├── thumbnail-latest.png # Latest thumbnail
+│   └── *-YYYYMMDD-*.{md,png} # Timestamped archives
+├── CLAUDE.md                # Documentation for Claude Code
+├── WORKFLOW.md              # Simple workflow (Korean)
+├── SECURITY.md              # API key security guide
+├── DEVELOPMENT.md           # Development process archive
+└── README.md                # This file
 ```

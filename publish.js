@@ -1,9 +1,11 @@
 const fs = require('fs');
+const path = require('path');
 const jwt = require('jsonwebtoken');
 const https = require('https');
 const http = require('http');
 const { URL } = require('url');
 const { marked } = require('marked');
+const { generateFilename } = require('./file-utils');
 require('dotenv').config();
 
 // Ghost configuration from environment variables
@@ -113,12 +115,25 @@ async function main() {
         const originalContent = fs.readFileSync('output/original.md', 'utf-8');
         const mdContent = fs.readFileSync('output/translation.md', 'utf-8');
 
-        // Extract title from original English article and add [번역] prefix
+        // Extract title from original English article
         const originalTitle = extractTitle(originalContent);
+
+        // Save timestamped versions for archival
+        const timestampedOriginal = generateFilename('original', originalTitle);
+        const timestampedTranslation = generateFilename('translation', originalTitle);
+
+        fs.writeFileSync(path.join('output', timestampedOriginal), originalContent);
+        fs.writeFileSync(path.join('output', timestampedTranslation), mdContent);
+
+        console.log(`✓ Saved timestamped files:`);
+        console.log(`  ${timestampedOriginal}`);
+        console.log(`  ${timestampedTranslation}`);
+
+        // Prepare for publishing
         const title = `[번역] ${originalTitle}`;
         const htmlContent = markdownToHTML(mdContent);
 
-        console.log(`Publishing: ${title}`);
+        console.log(`\nPublishing: ${title}`);
 
         // Publish
         const result = await publishToGhost(title, htmlContent);

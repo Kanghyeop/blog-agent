@@ -2,7 +2,9 @@
   "name": "blog-agent",
   "version": "1.0.0",
   "dependencies": {
+    "canvas": "^3.2.0",
     "dotenv": "^17.2.3",
+    "form-data": "^4.0.5",
     "jsonwebtoken": "^9.0.3",
     "marked": "^17.0.1"
   }
