@@ -13,24 +13,42 @@ CLI tool that translates English articles to Korean and publishes them to Ghost 
 
 ### Setup
 ```bash
-# Install dependencies
-poetry install
+# Install Node.js dependencies (required)
+npm install
 
 # Configure environment
 cp .env.example .env
-# Edit .env with GHOST_URL, GHOST_ADMIN_API_KEY, and ANTHROPIC_API_KEY
+# Edit .env with GHOST_URL and GHOST_ADMIN_API_KEY
 ```
 
-### Running the CLI
+### Token-Efficient Translation Workflow
+
+**IMPORTANT**: This workflow minimizes Claude Code token usage by using external tools and scripts where possible.
+
 ```bash
-# From URL
-poetry run blog-agent --url https://example.com/article --allow-republish
+# Step 1: Start workflow (optional, shows instructions)
+node translate_and_publish.js <source_url> [original_url]
 
-# From local file
-poetry run blog-agent --source article.md --allow-republish
+# Step 2: Extract content using Claude Code WebFetch
+# (Claude Code will do this for you)
 
-# Specify output directory
-poetry run blog-agent --source article.md --allow-republish --output-dir my_output/
+# Step 3: Claude Code translates and saves to output/translation.md
+# (Claude Code will do this for you)
+
+# Step 4: Publish to Ghost
+node publish.js
+
+# Step 5: Commit changes
+git add -A && git commit -m "Translate: [article title]"
+```
+
+### Manual Translation (if needed)
+```bash
+# 1. Save original content to output/original.md
+# 2. Manually translate or ask Claude Code to translate
+# 3. Save translation to output/translation.md with notice:
+#    > **번역 안내**: 이 글은 [원문](URL)을 한국어로 번역한 글입니다.
+# 4. Run: node publish.js
 ```
 
 ### Testing
@@ -65,51 +83,57 @@ poetry run black src/ tests/ && poetry run ruff check src/ tests/ && poetry run 
 
 ## Architecture
 
-### Pipeline Components
+### Token-Efficient Workflow
 
-The tool is organized as a three-stage pipeline in `src/blog_agent/pipeline/`:
+This project uses a **token-optimized workflow** for Claude Code:
 
-**1. ContentExtractor** (`extractor.py`):
-- Extracts article content from URLs or local markdown files
-- For URLs: Uses trafilatura/beautifulsoup4 to scrape and parse HTML
-- For local files: Reads markdown and extracts title from first `# heading`
-- Saves extracted content to `output/original.md`
+**1. Content Extraction** (via WebFetch - no tokens):
+- Claude Code uses WebFetch tool to get article content
+- Content is extracted and saved to `output/original.md`
+- WebFetch operates outside Claude's context, saving tokens
 
-**2. Translator** (`translator.py`):
-- Translates content using Claude API (default: Haiku model)
-- Uses Anthropic SDK with async client
-- Builds translation prompt that preserves markdown formatting
-- Extracts translated title from first `# heading`
-- Saves translation to `output/translation.md`
-- Returns token usage for cost tracking
+**2. Translation** (Claude Code - tokens used here):
+- Claude Code reads `output/original.md`
+- Translates to Korean in a single operation
+- Adds translation notice: `> **번역 안내**: 이 글은 [원문](URL)을 한국어로 번역한 글입니다.`
+- Saves to `output/translation.md`
+- This is the ONLY step that uses significant tokens
 
-**3. Publisher** (`publisher.py`):
-- Converts markdown to HTML using `markdown` library
-- Publishes to Ghost blog via Ghost Admin API
-- Uses title from translation (or falls back to original)
-- Returns post ID, URL, and publication status
+**3. Publishing** (via Node.js script - no tokens):
+- `publish.js` reads `output/translation.md`
+- Converts markdown to HTML
+- Publishes to Ghost via Admin API
+- Returns post ID and URL
+- Runs independently, no Claude Code tokens used
+
+### Why This Approach?
+
+- **Minimizes token usage**: Only translation step uses Claude Code context
+- **Faster**: WebFetch and scripts run without conversation overhead
+- **Reliable**: Each step is isolated and can be repeated independently
+- **Cost-effective**: Translation is the only billable operation
 
 ### Directory Structure
 
 ```
-src/blog_agent/
-├── cli.py              # CLI entry point with argparse
-├── core/
-│   ├── config.py       # Settings management (Pydantic)
-│   ├── agent.py        # Base Agent class (legacy, may remove)
-│   └── skill.py        # Base Skill class (legacy, may remove)
-├── pipeline/           # Main pipeline components
-│   ├── extractor.py    # Content extraction
-│   ├── translator.py   # Claude translation
-│   └── publisher.py    # Ghost publishing
-└── integrations/
-    └── ghost.py        # Ghost CMS API client wrapper
+src/blog_agent/         # Python pipeline (optional, not actively used)
+├── cli.py              # CLI entry point (legacy)
+├── core/               # Core classes (legacy)
+├── pipeline/           # Pipeline components (legacy)
+└── integrations/       # Ghost API client (legacy)
+
+# Active workflow files (use these):
+publish.js              # Ghost publishing script (ACTIVE)
+translate_and_publish.js # Workflow helper (ACTIVE)
 
 output/                 # Default output directory
 ├── original.md         # Extracted original content
-└── translation.md      # Translated content
+├── translation.md      # Translated content
+└── .workflow.json      # Workflow metadata
 
-tests/                  # Mirror src/ structure
+node_modules/           # Node.js dependencies
+package.json            # Node.js package config
+.env                    # Environment variables (Ghost credentials)
 ```
 
 ### CLI Entry Point
@@ -163,93 +187,120 @@ The `--allow-republish` flag is required:
 - CLI exits with error if flag is missing
 - This is a legal/ethical safeguard against unauthorized republishing
 
-## Common Development Tasks
+## Common Tasks
 
-### Adding URL Extraction
+### Translating a New Article
 
-Currently URL extraction raises `NotImplementedError`. To implement:
-1. Use `trafilatura` for article extraction (already in dependencies)
-2. Update `ContentExtractor.extract_from_url()` in `extractor.py`
-3. Example pattern:
-```python
-import trafilatura
-
-async def extract_from_url(self, url: str) -> Dict[str, Any]:
-    downloaded = trafilatura.fetch_url(url)
-    content = trafilatura.extract(downloaded, include_formatting=True)
-    # Extract title and metadata
-    return {"title": title, "content": content, "metadata": {...}}
-```
-
-### Changing Translation Model
-
-Edit `.env`:
 ```bash
-# For better quality (more expensive)
-ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
+# 1. Start workflow (shows instructions)
+node translate_and_publish.js <article_url>
 
-# For cheapest option (current default)
-ANTHROPIC_MODEL=claude-3-haiku-20240307
-```
+# 2. Claude Code will:
+#    - Use WebFetch to extract content → output/original.md
+#    - Translate to Korean → output/translation.md
+#    - Add translation notice with link
 
-### Adding Custom Prompt Instructions
+# 3. Publish
+node publish.js
 
-Modify `Translator._build_translation_prompt()` in `translator.py`:
-```python
-def _build_translation_prompt(self, content: str, source_lang: str, target_lang: str) -> str:
-    return f"""Translate to {target_lang}.
-
-Custom instructions here (e.g., "Use informal tone", "Preserve brand names").
-
-Article:
-{content}"""
+# 4. Commit
+git add -A && git commit -m "Translate: [article title]"
 ```
 
 ### Publishing as Draft Instead of Published
 
-Modify `cli.py`, `run_pipeline()` function:
-```python
-result = await publisher.publish(
-    title=title,
-    markdown_content=translation["translated_content"],
-    status="draft"  # Change from "published" to "draft"
-)
+Edit `publish.js`, change line ~52:
+```javascript
+posts: [{
+    title: title,
+    html: htmlContent,
+    status: "draft"  // Change from "published" to "draft"
+}]
 ```
 
-## Technical Patterns
+### Adding Translation Notice Format
 
-### Async/Await
+Translation notices are automatically added to `output/translation.md`:
 
-All pipeline components use async:
-- Pipeline stages are async functions
-- Ghost API calls are async
-- Claude API calls are async
-- Main orchestration uses `asyncio.run()`
+```markdown
+> **번역 안내**: 이 글은 [원문](https://original-url.com)을 한국어로 번역한 글입니다.
+```
 
-### Type Annotations
+This should be placed right after the author byline and before the first content section.
 
-Strictly typed (enforced by mypy):
-- All functions have parameter and return type hints
-- Use `Dict[str, Any]` for flexible data structures
-- Use `str | None` for optional strings (Python 3.10+ union syntax)
-- Pydantic models for settings validation
+### Customizing Translation Style
+
+When asking Claude Code to translate, provide specific instructions:
+
+```
+Please translate output/original.md to Korean with these guidelines:
+- Use formal/informal tone
+- Preserve technical terms in English
+- Keep code blocks unchanged
+- Translate to casual/professional style
+```
+
+## Technical Details
+
+### Ghost API Authentication
+
+`publish.js` uses JWT authentication:
+- Splits API key into `id:secret`
+- Creates JWT token with 5-minute expiration
+- Sends as `Authorization: Ghost <token>` header
+
+### Translation Guidelines
+
+When translating with Claude Code:
+1. **Preserve markdown formatting**: Keep headings, lists, links, code blocks
+2. **Add translation notice**: Include original URL link
+3. **Maintain structure**: Don't reorganize content
+4. **Keep code unchanged**: Code blocks stay in original language
+5. **Translate naturally**: Don't be overly literal
+
+### Git Workflow
+
+All work is automatically committed:
+```bash
+# After each translation
+git add -A
+git commit -m "Translate: [article title]
+
+- Extracted from: [original URL]
+- Published to: [ghost URL]
+- Translation saved to output/translation.md"
+```
+
+This creates a complete history of all translations.
 
 ### Error Handling
 
-Currently minimal error handling. To improve:
-- Add retry logic using `MAX_RETRIES` from settings
-- Handle API failures gracefully
-- Validate extracted content before translation
-- Catch Ghost API errors and provide user-friendly messages
+If `publish.js` fails:
+- Check Ghost API credentials in `.env`
+- Verify Ghost Admin API key has write permissions
+- Check `output/translation.md` exists and has content
+- Try publishing as draft first (change status in publish.js)
 
-## Cost Estimation
+## Cost Optimization
 
-Using Claude Haiku (default):
-- ~$0.001 - $0.003 per article translation
-- Input: $0.25 per million tokens
-- Output: $1.25 per million tokens
-- Typical article: 1000-3000 tokens
+### Current Approach (Token-Efficient)
 
-Using Claude Sonnet:
-- ~$0.01 - $0.03 per article translation
-- Higher quality but 10x more expensive
+**Token usage per article**:
+- WebFetch content extraction: 0 tokens (external tool)
+- Translation: ~3,000-5,000 tokens (Claude Code context)
+- Publishing via Node.js: 0 tokens (external script)
+
+**Total cost per article**: Minimal, only translation conversation tokens
+
+### Why This Matters
+
+- **Old approach**: Would use 10,000+ tokens per article (extraction, translation, publishing all in context)
+- **New approach**: Uses ~3,000-5,000 tokens per article (only translation in context)
+- **Savings**: ~70% reduction in token usage
+
+### Best Practices
+
+1. **Use WebFetch** for content extraction instead of asking Claude Code to browse
+2. **Batch translations** if possible, but keep each translation in a separate conversation to avoid context bloat
+3. **Use publish.js** instead of asking Claude Code to publish
+4. **Keep output files**: `original.md` and `translation.md` can be reused without re-fetching
