@@ -218,15 +218,18 @@ posts: [{
 }]
 ```
 
-### Adding Translation Notice Format
+### Translation Notice and Title Format
 
-Translation notices are automatically added to `output/translation.md`:
-
+**Translation notice** is added to the top of `output/translation.md`:
 ```markdown
 > **번역 안내**: 이 글은 [원문](https://original-url.com)을 한국어로 번역한 글입니다.
 ```
 
-This should be placed right after the author byline and before the first content section.
+**Title format** for Ghost posts:
+- Uses original English title from `output/original.md`
+- Adds "[번역]" prefix
+- Example: `[번역] How To Be Successful`
+- This is handled automatically by `publish.js`
 
 ### Customizing Translation Style
 
@@ -253,10 +256,13 @@ Please translate output/original.md to Korean with these guidelines:
 
 When translating with Claude Code:
 1. **Preserve markdown formatting**: Keep headings, lists, links, code blocks
-2. **Add translation notice**: Include original URL link
+2. **Add translation notice**: Include original URL link at the top
 3. **Maintain structure**: Don't reorganize content
 4. **Keep code unchanged**: Code blocks stay in original language
 5. **Translate naturally**: Don't be overly literal
+6. **Title format**: Blog post titles use original English title with "[번역]" prefix
+   - Example: "[번역] How To Be Successful"
+   - The title is extracted from `output/original.md`, not the translation
 
 ### Git Workflow
 

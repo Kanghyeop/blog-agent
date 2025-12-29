@@ -85,11 +85,13 @@ async function publishToGhost(title, htmlContent) {
 
 async function main() {
     try {
-        // Read translation
+        // Read original and translation
+        const originalContent = fs.readFileSync('output/original.md', 'utf-8');
         const mdContent = fs.readFileSync('output/translation.md', 'utf-8');
 
-        // Extract title and convert to HTML
-        const title = extractTitle(mdContent);
+        // Extract title from original English article and add [번역] prefix
+        const originalTitle = extractTitle(originalContent);
+        const title = `[번역] ${originalTitle}`;
         const htmlContent = markdownToHTML(mdContent);
 
         console.log(`Publishing: ${title}`);
