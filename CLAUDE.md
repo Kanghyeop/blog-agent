@@ -21,25 +21,34 @@ cp .env.example .env
 # Edit .env with GHOST_URL and GHOST_ADMIN_API_KEY
 ```
 
-### Token-Efficient Translation Workflow
+### Token-Efficient Translation Workflow (Haiku Model)
 
-**IMPORTANT**: This workflow minimizes Claude Code token usage by using external tools and scripts where possible.
+**IMPORTANT**: Use Claude Haiku for translation to reduce costs by ~95%.
 
 ```bash
-# Step 1: Start workflow (optional, shows instructions)
-node translate_and_publish.js <source_url> [original_url]
+# Recommended: Use Haiku model for translation
+node translate.js <article_url>
 
-# Step 2: Extract content using Claude Code WebFetch
-# (Claude Code will do this for you)
+# Then follow the instructions:
+# 1. Claude Code extracts with WebFetch (0 tokens)
+# 2. Claude Code spawns Haiku agent for translation (cheap!)
+# 3. Publish: node publish.js
+# 4. Commit: git add -A && git commit -m "..." && git push
+```
 
-# Step 3: Claude Code translates and saves to output/translation.md
-# (Claude Code will do this for you)
+**Cost Comparison per Article**:
+- Sonnet translation: ~7,000 tokens = ~$0.05-0.07
+- Haiku translation: ~7,000 tokens = ~$0.002-0.003
+- **Savings: ~95% cost reduction!**
 
-# Step 4: Publish to Ghost
-node publish.js
+### Alternative: Direct Sonnet Translation
 
-# Step 5: Commit changes
-git add -A && git commit -m "Translate: [article title]"
+If you prefer higher quality or are in a conversation already:
+```bash
+# Step 1: Extract with WebFetch
+# Step 2: Translate directly (uses current Sonnet model)
+# Step 3: node publish.js
+# Step 4: git commit && push
 ```
 
 ### Manual Translation (if needed)
@@ -289,24 +298,46 @@ If `publish.js` fails:
 
 ## Cost Optimization
 
-### Current Approach (Token-Efficient)
+### Haiku Translation (Recommended)
+
+**Use the Task tool with Haiku model for translation**:
+```bash
+node translate.js <url>
+# Then follow instructions to use Haiku agent
+```
 
 **Token usage per article**:
-- WebFetch content extraction: 0 tokens (external tool)
-- Translation: ~3,000-5,000 tokens (Claude Code context)
+- WebFetch extraction: 0 tokens (external tool)
+- Translation with **Haiku**: ~7,000 tokens = ~$0.002-0.003
 - Publishing via Node.js: 0 tokens (external script)
 
-**Total cost per article**: Minimal, only translation conversation tokens
+**Total cost per article: ~$0.002-0.003** (practically free!)
 
-### Why This Matters
+### Sonnet Translation (Higher Quality)
 
-- **Old approach**: Would use 10,000+ tokens per article (extraction, translation, publishing all in context)
-- **New approach**: Uses ~3,000-5,000 tokens per article (only translation in context)
-- **Savings**: ~70% reduction in token usage
+If quality is critical, translate directly in conversation:
+
+**Token usage per article**:
+- WebFetch extraction: 0 tokens (external tool)
+- Translation with **Sonnet**: ~7,000 tokens = ~$0.05-0.07
+- Publishing via Node.js: 0 tokens (external script)
+
+**Total cost per article: ~$0.05-0.07**
+
+### Model Comparison
+
+| Model | Tokens/Article | Cost/Article | Quality | Speed |
+|-------|---------------|--------------|---------|-------|
+| **Haiku 3.5** | ~7,000 | ~$0.002 | Good | Fast |
+| Sonnet 4.5 | ~7,000 | ~$0.05 | Excellent | Medium |
+| Opus 4.5 | ~7,000 | ~$0.35 | Best | Slow |
+
+**Recommendation**: Use Haiku for most translations. The quality is excellent for translation tasks and costs 25x less than Sonnet.
 
 ### Best Practices
 
-1. **Use WebFetch** for content extraction instead of asking Claude Code to browse
-2. **Batch translations** if possible, but keep each translation in a separate conversation to avoid context bloat
-3. **Use publish.js** instead of asking Claude Code to publish
-4. **Keep output files**: `original.md` and `translation.md` can be reused without re-fetching
+1. **Use Haiku via Task tool** for translation (95% cost savings)
+2. **Use WebFetch** for content extraction (0 tokens)
+3. **Use publish.js** for Ghost publishing (0 tokens)
+4. **Reserve Sonnet** for complex translations with nuanced terminology
+5. **Keep output files**: `original.md` and `translation.md` can be reused
