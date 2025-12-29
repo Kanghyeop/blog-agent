@@ -296,6 +296,163 @@ vercel deploy --prod
 
 ---
 
+### Phase 7: 타임스탬프 아카이브 & 썸네일 자동 생성
+
+**프롬프트:**
+```
+1. output에 저장하는 original과 translation은 각각 글의 짧은 제목과 타임스탬프를 항상 붙혀줘.
+2. 고스트에서 추천하는 썸네일 크기로 썸네일을 만드는 스크립트도 추가해줘.
+   단순히 검정 배경에 흰 pretendard 글씨로 핵심 키워드만 눈에 잘 보이도록 만들도록 하자
+```
+
+**요구사항 분석:**
+- 모든 번역 파일에 타임스탬프 추가 (아카이빙 목적)
+- 자동 썸네일 생성 (Ghost feature image용)
+- 미니멀 디자인: 검정 배경 + 흰색 텍스트
+- Ghost 권장 사이즈 (2000x1200px)
+
+**구현 내용:**
+
+1. **파일명 유틸리티 (file-utils.js)**
+   ```javascript
+   // 타임스탬프 생성: YYYYMMDD-HHMMSS
+   function getTimestamp() {
+       const now = new Date();
+       return `${year}${month}${day}-${hours}${minutes}${seconds}`;
+   }
+
+   // 파일명 생성
+   function generateFilename(prefix, title, extension) {
+       const shortTitle = titleToFilename(title); // 제목을 slug화
+       const timestamp = getTimestamp();
+       return `${prefix}-${shortTitle}-${timestamp}.${extension}`;
+   }
+   ```
+
+2. **썸네일 생성기 (generate-thumbnail.js)**
+   ```javascript
+   const { createCanvas } = require('canvas');
+
+   // Ghost 권장 사이즈
+   const WIDTH = 2000;
+   const HEIGHT = 1200;
+
+   function generateThumbnail(title, outputPath) {
+       const canvas = createCanvas(WIDTH, HEIGHT);
+       const ctx = canvas.getContext('2d');
+
+       // 검정 배경
+       ctx.fillStyle = '#000000';
+       ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+       // 흰색 텍스트 (Pretendard/Malgun Gothic)
+       ctx.fillStyle = '#FFFFFF';
+       ctx.font = 'bold 120px Pretendard, "Malgun Gothic"';
+       ctx.textAlign = 'center';
+
+       // 텍스트 자동 줄바꿈
+       const lines = wrapText(ctx, title, WIDTH * 0.85);
+       lines.forEach(line => {
+           ctx.fillText(line, WIDTH / 2, y);
+       });
+
+       // PNG 저장
+       const buffer = canvas.toBuffer('image/png');
+       fs.writeFileSync(outputPath, buffer);
+   }
+   ```
+
+3. **publish.js 업데이트**
+   - 발행 시 타임스탬프 파일 자동 저장
+   - `original.md`, `translation.md`는 최신 버전으로 유지 (하위 호환성)
+   - 추가로 타임스탬프 파일 생성
+
+   ```javascript
+   const timestampedOriginal = generateFilename('original', title);
+   const timestampedTranslation = generateFilename('translation', title);
+
+   fs.writeFileSync(path.join('output', timestampedOriginal), originalContent);
+   fs.writeFileSync(path.join('output', timestampedTranslation), translationContent);
+   ```
+
+4. **run.js 업데이트 (6단계 파이프라인)**
+   - Step 3: 썸네일 생성 추가
+   ```
+   1. Content Extraction
+   2. Translation
+   3. Generate Thumbnail (NEW!)
+   4. Publish to Ghost
+   5. Git Commit
+   6. Push to GitHub
+   ```
+
+5. **소급 적용 (retroactive-apply.js)**
+   - 기존 발행된 2개 글에 대해:
+     - 타임스탬프 파일 생성
+     - 썸네일 생성
+   ```javascript
+   const articles = [
+       { name: 'How To Be Successful', timestamp: '20251229-180500' },
+       { name: 'The Shape of the Essay Field', timestamp: '20251229-180700' }
+   ];
+   ```
+
+6. **Ghost 썸네일 업데이터 (update-ghost-thumbnails.js)**
+   - Ghost API로 이미지 업로드
+   - 포스트의 feature_image 필드 업데이트
+   ```javascript
+   // 1. 이미지 업로드
+   const imageUrl = await uploadImage(thumbnailPath);
+
+   // 2. 포스트 업데이트
+   await updatePost(postId, { feature_image: imageUrl });
+   ```
+
+**추가 요구사항:**
+```
+발행된 글 2개에 소급적용
+```
+
+**실행 결과:**
+```
+Article 1: How To Be Successful
+✓ Created: original-how-to-be-successful-20251229-180500.md
+✓ Created: translation-how-to-be-successful-20251229-180500.md
+✓ Created: thumbnail-how-to-be-successful-20251229-180500.png
+✓ Uploaded to Ghost: https://aiden.ghost.io/beonyeog-how-to-be-successful/
+
+Article 2: The Shape of the Essay Field
+✓ Created: original-the-shape-of-the-essay-field-20251229-180700.md
+✓ Created: translation-the-shape-of-the-essay-field-20251229-180700.md
+✓ Created: thumbnail-the-shape-of-the-essay-field-20251229-200041.png
+✓ Uploaded to Ghost: https://aiden.ghost.io/beonyeog-the-shape-of-the-essay-field/
+```
+
+**버그 수정:**
+```
+그리고 지금 썸네일에 이상한 밑줄이 보이는 버그 하나 있는듯 픽스
+```
+
+**해결:**
+- 썸네일 하단의 장식용 선 제거
+- 순수 검정 배경 + 흰색 텍스트만 유지
+
+**의존성 추가:**
+```json
+{
+  "canvas": "^3.2.0",      // 이미지 생성
+  "form-data": "^5.0.0"    // Ghost API 이미지 업로드
+}
+```
+
+**교훈:**
+- Canvas API를 사용한 서버 사이드 이미지 생성
+- Ghost Admin API의 이미지 업로드 엔드포인트 사용법
+- 타임스탬프를 활용한 아카이빙 전략
+- 하위 호환성을 유지하면서 새 기능 추가하기
+
+---
+
 ## 💡 핵심 배운 점
 
 ### 1. 점진적 개발의 중요성

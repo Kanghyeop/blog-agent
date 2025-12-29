@@ -2,6 +2,30 @@
 
 CLI tool to translate English articles to Korean and publish to Ghost blog.
 
+## 📚 Documentation
+
+- **[README.md](README.md)** - 이 파일: 사용 가이드
+- **[WORKFLOW.md](WORKFLOW.md)** - 간단 사용법 (한글)
+- **[CLAUDE.md](CLAUDE.md)** - Claude Code를 위한 상세 문서
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - 개발 과정 아카이브 (교육용)
+- **[SECURITY.md](SECURITY.md)** - API 키 보안 가이드
+
+## 🛠️ Available Scripts
+
+### Main Pipeline
+- `node run.js <URL>` - 전체 파이프라인 실행 (6단계)
+
+### Individual Tools
+- `node publish.js` - Ghost 발행 (타임스탬프 파일 저장)
+- `node generate-thumbnail.js` - 썸네일 생성 (2000x1200px)
+- `node translate.js <URL>` - 번역 워크플로우 가이드
+- `node update-ghost-thumbnails.js` - Ghost 포스트에 썸네일 추가
+
+### Utilities
+- `node file-utils.js` - 파일명 유틸리티 (라이브러리)
+- `node retroactive-apply.js` - 기존 글에 기능 소급 적용
+- `node append-development.js` - DEVELOPMENT.md 업데이트 헬퍼
+
 ## Features
 
 - Extract content from URLs using WebFetch
