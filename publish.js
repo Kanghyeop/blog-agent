@@ -38,7 +38,7 @@ function extractTitle(md) {
 
 async function publishToGhost(title, htmlContent) {
     const token = createJWT(GHOST_ADMIN_API_KEY);
-    const apiUrl = new URL('/ghost/api/admin/posts/', GHOST_URL);
+    const apiUrl = new URL('/ghost/api/admin/posts/?source=html', GHOST_URL);
 
     const postData = JSON.stringify({
         posts: [{
@@ -50,7 +50,7 @@ async function publishToGhost(title, htmlContent) {
 
     const options = {
         hostname: apiUrl.hostname,
-        path: apiUrl.pathname,
+        path: apiUrl.pathname + apiUrl.search,
         method: 'POST',
         headers: {
             'Authorization': `Ghost ${token}`,
