@@ -1,33 +1,64 @@
 ---
 name: thumbnail-generator
-description: Generate blog post thumbnails with minimalist design. Use when creating thumbnails, feature images, or when user mentions thumbnail generation.
+description: Generate minimalist blog post thumbnails (2000x1200px) with black background and white text. Use when creating thumbnails, feature images, or when user mentions thumbnail generation.
 allowed-tools: Read, Bash
 ---
 
 # Thumbnail Generator
 
+Generate Ghost blog feature images with minimalist design.
+
 ## Quick Start
 
+Generate from translation file:
 ```bash
-node generate-thumbnail.js
+cd .claude/skills/thumbnail-generator && node scripts/generate-thumbnail.js
 ```
 
-Generates thumbnail from `output/translation.md` with automatic timestamped filename.
+Automatically:
+- Reads `output/translation.md`
+- Extracts title/keywords
+- Creates 2000x1200px PNG
+- Saves with timestamp
 
 ## Design Specs
 
-- **Size**: 2000x1200px (Ghost recommended)
-- **Style**: Black background (#000000), white text (#FFFFFF)
-- **Font**: Pretendard, Malgun Gothic (Korean support)
-- **Text**: Auto-extracted keywords with smart wrapping
+### Size
+2000x1200px (Ghost recommended feature image size)
 
-## Output
+### Style
+- **Background**: Solid black (#000000)
+- **Text**: White (#FFFFFF)
+- **Font**: Pretendard → Malgun Gothic → Apple SD Gothic Neo → Noto Sans KR
+- **Layout**: Centered, auto-wrapped text
 
-- `output/thumbnail-{title}-{timestamp}.png`
-- `output/thumbnail-latest.png` (symlink for convenience)
+### Text Processing
+- Auto-extracts keywords from article title
+- Smart line breaking (max width: 85% of canvas)
+- Font size: 120px (scales for long text)
+- Line height: 1.3x font size
+
+## Output Files
+
+```
+output/thumbnail-{title}-{timestamp}.png
+output/thumbnail-latest.png
+```
+
+Example: `thumbnail-the-simplest-way-to-test-20251229-202656.png`
 
 ## Manual Generation
 
+Custom title:
 ```bash
-node generate-thumbnail.js "Custom Title Text"
+cd .claude/skills/thumbnail-generator && node scripts/generate-thumbnail.js "Custom Title"
 ```
+
+## Dependencies
+
+Requires `canvas` package:
+```bash
+npm install canvas
+```
+
+Uses Node.js Canvas API for server-side image generation.

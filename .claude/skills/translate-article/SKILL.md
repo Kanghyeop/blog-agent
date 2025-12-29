@@ -1,48 +1,84 @@
 ---
 name: translate-article
 description: Translate English articles to Korean and publish to Ghost blog. Use when user asks to translate and publish an article URL, mentions translation, Ghost publishing, or says "번역해서 발행해줘".
-allowed-tools: Read, Write, Edit, Bash, WebFetch
+allowed-tools: Read, Write, Bash, WebFetch, Task
+model: sonnet
 ---
 
 # Translate & Publish Article
 
-## Workflow
+Complete workflow for translating English articles to Korean and publishing to Ghost.
 
-**User prompt examples:**
-- "이거 번역해서 발행해줘: https://example.com/article"
-- "Haiku로 번역해서 발행해줘: https://example.com/article"
+## User Prompts
 
-### Steps
-
-1. **Extract content** - Use WebFetch to get article content
-2. **Translate** - Use Claude API (Haiku/Sonnet based on user request)
-3. **Generate thumbnail** - Run `node generate-thumbnail.js`
-4. **Publish** - Run `node publish.js`
-5. **Git commit** - Auto-commit with article info
-
-### Model Selection
-
-| Model | Cost/Article | Use Case |
-|-------|--------------|----------|
-| Haiku | ~$0.002 | Default (95% cost savings) |
-| Sonnet | ~$0.05 | Complex content |
-
-### Commands
-
-**Full pipeline:**
-```bash
-node run.js <URL>
+```
+이거 번역해서 발행해줘: https://example.com/article
 ```
 
-**Individual steps:**
-```bash
-node translate.js <URL>      # Step-by-step guide
-node generate-thumbnail.js   # Thumbnail only
-node publish.js              # Publish only
+For cost savings (95% cheaper):
+```
+이거 Haiku로 번역해서 발행해줘: https://example.com/article
 ```
 
-## Output Format
+## Workflow Steps
 
-- Title: `[번역] Original English Title`
-- Files: Timestamped archives in `output/`
-- Git: Auto-commit with article metadata
+### 1. Extract Content
+Use WebFetch to extract article from URL → save to `output/original.md`
+
+### 2. Translate
+Spawn Haiku agent using Task tool for cost-efficient translation:
+- Read `output/original.md`
+- Translate to Korean with Task tool (model: haiku)
+- Add translation notice with original URL
+- Save to `output/translation.md`
+
+**Cost**: ~$0.002/article with Haiku vs ~$0.05 with Sonnet
+
+### 3. Generate Thumbnail
+Run thumbnail generator (2000x1200px, black bg, white text):
+```bash
+cd .claude/skills/thumbnail-generator && node scripts/generate-thumbnail.js
+```
+
+### 4. Publish to Ghost
+Run publisher with automatic file archiving:
+```bash
+cd .claude/skills/ghost-publish && node scripts/publish.js
+```
+
+### 5. Git Commit
+```bash
+git add -A
+git commit -m "Translate: [title]
+- From: [URL]
+- Published: [Ghost URL]"
+git push origin master
+```
+
+## Translation Guidelines
+
+1. Add notice: `> **번역 안내**: 이 글은 [원문](URL)을 한국어로 번역한 글입니다.`
+2. Title format: `[번역] Original English Title`
+3. Preserve markdown formatting
+4. Keep code blocks unchanged
+5. Translate naturally for Korean readers
+
+## Output Files
+
+- `output/original.md` - Latest original
+- `output/translation.md` - Latest translation
+- `output/original-{title}-{timestamp}.md` - Archived
+- `output/translation-{title}-{timestamp}.md` - Archived
+- `output/thumbnail-{title}-{timestamp}.png` - Thumbnail
+
+## Scripts
+
+Full pipeline (interactive):
+```bash
+cd .claude/skills/translate-article && node scripts/run.js <URL>
+```
+
+Translation helper:
+```bash
+cd .claude/skills/translate-article && node scripts/translate.js <URL>
+```
