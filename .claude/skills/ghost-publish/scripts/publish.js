@@ -225,6 +225,19 @@ async function main() {
         if (featureImageUrl) {
             console.log(`  Feature Image: ${featureImageUrl}`);
         }
+
+        // Clean up temp files after successful publish
+        console.log('\n✓ Cleaning up temporary files...');
+        try {
+            fs.unlinkSync('output/original.md');
+            fs.unlinkSync('output/translation.md');
+            console.log('  Removed original.md and translation.md');
+        } catch (err) {
+            // Files might not exist, that's okay
+            if (err.code !== 'ENOENT') {
+                console.warn(`  Warning: Could not remove temp files: ${err.message}`);
+            }
+        }
     } catch (error) {
         console.error('Error:', error.message);
         process.exit(1);
