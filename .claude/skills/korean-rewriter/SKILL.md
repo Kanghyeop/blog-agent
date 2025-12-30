@@ -75,3 +75,39 @@ description: 번역된 한국어 텍스트를 원어민이 처음부터 쓴 것�
 
 **말맛 있는:**
 - "글이 착하면 재미가 없어요. 약간 싸가지 없고 톡톡 튀는 것도 매력이 없지 않아요." — 이성복
+
+## Case Library
+
+### Case 1 #조언 #would-be-well-served #좋겠다금지
+
+**EN:** Almost everyone I've ever met would be well-served by spending more time thinking about what to focus on.
+
+**KO(번역투):** 내가 만난 거의 모든 사람은 무엇에 집중할지 더 깊이 생각하면 좋겠다.
+
+**KO(목표):** 내가 만났던 거의 대부분의 사람들에게 필요한 건 하나다. 무엇에 집중할지 더 오래 고민하는 것.
+
+**진단:** would be well-served는 "바람(좋겠다)"이 아니라 "효용/필요"의 단정이다. 한 문장에 다 넣으면 힘이 죽는다.
+
+**규칙:** 조언/효용 표현(would be well-served/helpful/benefit)은 "좋겠다" 금지 → "필요/이득/도움" + 필요시 2문장(하나다/이거다)로 분리.
+
+### Case 2 #대체가능 #경고톤 #지시어제거 #2문장리듬
+
+**EN:** If what you do can be done by someone else, it eventually will be, and for less money.
+
+**KO(번역투):** 당신이 하는 일을 남이 할 수 있다면, 결국 그렇게 될 것이다. 더 싼 값에.
+
+**KO(목표):** 네 일이 남도 할 수 있는 일이면, 결국 남이 한다. 그것도 더 싸게.
+
+**진단:** "그렇게"는 대상을 흐리고, "더 싼 값에"는 파편. 원문은 경고/단정 톤인데 힘이 빠짐.
+
+**규칙:** 조건문은 단정으로(대체/남이 한다). 후행 정보(for less money)는 그것도/그리고로 붙여 2문장 리듬 만들기.
+
+### Case 3 #완충구압축 #주어중복금지 #2문장우선
+
+**EN:** I am deeply aware of the fact that I personally would not be where I am if I weren't born incredibly lucky.
+
+**KO(번역투):** 내가 엄청나게 운 좋게 태어나지 않았다면 지금 여기 없을 거라는 걸 깊이 안다.
+
+**KO(목표):** 나는 안다. 운이 엄청 좋게 태어나지 않았으면 지금의 나는 없었을 거라는 걸.
+
+**규칙:** "aware of the fact that"는 삭제/압축("알고 있다/분명하다/뼈저리게"). 주어(나는) 문장 끝에 재등장 금지. 길면 2문장 분리 또는 원인-결과로 뒤집기.
