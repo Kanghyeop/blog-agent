@@ -170,6 +170,9 @@ async function generateThumbnailForTitle(title) {
 
 async function main() {
     try {
+        // Check for korean-rewriter flag
+        const useKoreanRewriter = process.argv.includes('--korean-rewriter');
+
         // Read original and translation
         const originalContent = fs.readFileSync('output/original.md', 'utf-8');
         const mdContent = fs.readFileSync('output/translation.md', 'utf-8');
@@ -208,8 +211,9 @@ async function main() {
         featureImageUrl = await uploadImage(thumbnail.path);
         console.log(`✓ Thumbnail uploaded: ${featureImageUrl}`);
 
-        // Prepare for publishing (use translation title)
-        const title = `[번역] ${translationTitle}`;
+        // Prepare for publishing (use translation title with appropriate prefix)
+        const titlePrefix = useKoreanRewriter ? '[스킬적용-KoreanRewriter]' : '[번역]';
+        const title = `${titlePrefix} ${translationTitle}`;
         const htmlContent = markdownToHTML(mdContent);
 
         console.log(`\nPublishing: ${title}`);
