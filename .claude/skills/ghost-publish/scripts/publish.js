@@ -174,12 +174,21 @@ async function main() {
         const originalContent = fs.readFileSync('output/original.md', 'utf-8');
         const mdContent = fs.readFileSync('output/translation.md', 'utf-8');
 
-        // Extract title from original English article
+        // Extract title from translation (more reliable as it's what we're publishing)
+        const translationTitle = extractTitle(mdContent);
         const originalTitle = extractTitle(originalContent);
 
-        // Save timestamped versions for archival
-        const timestampedOriginal = generateFilename('original', originalTitle);
-        const timestampedTranslation = generateFilename('translation', originalTitle);
+        // Validate: warn if titles don't match
+        if (translationTitle !== originalTitle) {
+            console.warn(`⚠️  Warning: Title mismatch detected!`);
+            console.warn(`  Original: ${originalTitle}`);
+            console.warn(`  Translation: ${translationTitle}`);
+            console.warn(`  Using translation title for publishing.\n`);
+        }
+
+        // Save timestamped versions for archival (use translation title)
+        const timestampedOriginal = generateFilename('original', translationTitle);
+        const timestampedTranslation = generateFilename('translation', translationTitle);
 
         fs.writeFileSync(path.join('output', timestampedOriginal), originalContent);
         fs.writeFileSync(path.join('output', timestampedTranslation), mdContent);
@@ -191,7 +200,7 @@ async function main() {
         // Generate thumbnail
         let featureImageUrl = null;
         console.log(`\nGenerating thumbnail...`);
-        const thumbnail = await generateThumbnailForTitle(originalTitle);
+        const thumbnail = await generateThumbnailForTitle(translationTitle);
         console.log(`✓ Thumbnail generated: ${thumbnail.filename}`);
 
         // Upload thumbnail
@@ -199,8 +208,8 @@ async function main() {
         featureImageUrl = await uploadImage(thumbnail.path);
         console.log(`✓ Thumbnail uploaded: ${featureImageUrl}`);
 
-        // Prepare for publishing
-        const title = `[번역] ${originalTitle}`;
+        // Prepare for publishing (use translation title)
+        const title = `[번역] ${translationTitle}`;
         const htmlContent = markdownToHTML(mdContent);
 
         console.log(`\nPublishing: ${title}`);
