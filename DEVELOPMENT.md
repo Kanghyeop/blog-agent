@@ -1278,3 +1278,10 @@ https://www.future-foundry.io/blog/the-simplest-way-to-test-if-your-solution-mak
 - AI와의 협업으로 빠르게 프로토타입을 만들고 실제 문제를 만나며 개선하는 방식이 매우 효과적
 - 새로운 기술의 성숙도를 평가하고 과감히 롤백할 수 있는 판단력도 중요
 - 작동하는 간단한 솔루션이 복잡한 시스템보다 나을 수 있음
+
+---
+
+## Changelog
+
+### 2025-12-30
+- Skills: git-workflow, thumbnail-generator, korean-rewriter | Code: 1 file(s)

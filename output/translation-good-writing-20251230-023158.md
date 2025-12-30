@@ -1,4 +1,4 @@
-# [번역비교] How To Be Successful
+# [번역성능비교] How To Be Successful
 
 > **번역 안내**: 이 글은 Sam Altman의 "[How To Be Successful](https://blog.samaltman.com/how-to-be-successful)"을 세 가지 Claude 모델(Opus 4.5, Sonnet 4.5, Haiku 3.5)로 번역한 결과를 비교하기 위한 게시글입니다. 동일한 원문을 각 모델이 어떻게 번역하는지 확인할 수 있습니다.
 

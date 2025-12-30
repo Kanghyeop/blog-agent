@@ -135,14 +135,9 @@ async function main() {
         // Generate thumbnail
         generateThumbnail(keywords, thumbnailPath);
 
-        // Also save as latest.png for easy access
-        const latestPath = path.join('output', 'thumbnail-latest.png');
-        fs.copyFileSync(thumbnailPath, latestPath);
-
         console.log('✓ Thumbnail generated successfully!');
         console.log(`  File: ${thumbnailFilename}`);
         console.log(`  Size: ${WIDTH}x${HEIGHT}px (Ghost recommended)`);
-        console.log(`  Latest: thumbnail-latest.png`);
     } catch (error) {
         console.error('Error:', error.message);
         process.exit(1);

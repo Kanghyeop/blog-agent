@@ -22,8 +22,9 @@ Create a commit
 
 1. **Smart Commit**: Auto-generate commit messages from changed files
 2. **Quick Push**: Commit and push in one command
-3. **Status Check**: View current git state
-4. **Branch Management**: Create/switch branches
+3. **Auto Documentation**: Update README.md & DEVELOPMENT.md on code changes
+4. **Status Check**: View current git state
+5. **Branch Management**: Create/switch branches
 
 ## Usage
 
@@ -66,11 +67,29 @@ The skill auto-generates messages based on file changes:
 | Multiple types | `Update: [list of files]` |
 | Translation workflow | `Translate: [article title]` |
 
+## Auto Documentation
+
+**Triggers on**:
+- Code file changes (`.js`, `.py`, `.ts`)
+- Skill additions/modifications
+- Configuration changes
+
+**Skips on**:
+- Translation-only changes (`output/*.md`)
+- Documentation-only changes
+
+**What it does**:
+1. Analyzes changed files
+2. Updates README.md (skills section)
+3. Updates DEVELOPMENT.md (changelog)
+4. Stages docs for commit
+
 ## Scripts
 
 | Script | Purpose |
 |--------|---------|
-| `quick-push.js` | Commit all changes and push |
+| `quick-push.js` | Commit all changes and push (auto-updates docs) |
+| `update-docs.js` | Update README.md & DEVELOPMENT.md |
 | `status.js` | Enhanced git status display |
 | `commit.js` | Commit with auto-generated message |
 

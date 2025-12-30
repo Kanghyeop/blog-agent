@@ -111,6 +111,12 @@ function main() {
     changedFiles.forEach(file => console.log(`  ${file}`));
     console.log('');
 
+    // Step 1.5: Update documentation if needed
+    const updateDocsScript = path.join(__dirname, 'update-docs.js');
+    if (fs.existsSync(updateDocsScript)) {
+        runCommand(`node "${updateDocsScript}"`, false);
+    }
+
     // Get commit message
     const customMessage = process.argv.slice(2).join(' ');
     const commitMessage = customMessage || generateCommitMessage(changedFiles);

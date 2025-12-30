@@ -156,6 +156,18 @@ async function publishToGhost(title, htmlContent, featureImage = null) {
     });
 }
 
+async function generateThumbnailForTitle(title) {
+    const { generateThumbnail, extractKeywords } = require('../../thumbnail-generator/scripts/generate-thumbnail.js');
+
+    const translationContent = fs.readFileSync('output/translation.md', 'utf-8');
+    const keywords = extractKeywords(translationContent);
+    const thumbnailFilename = generateFilename('thumbnail', title, 'png');
+    const thumbnailPath = path.join('output', thumbnailFilename);
+
+    generateThumbnail(keywords, thumbnailPath);
+    return { path: thumbnailPath, filename: thumbnailFilename };
+}
+
 async function main() {
     try {
         // Read original and translation
@@ -168,7 +180,6 @@ async function main() {
         // Save timestamped versions for archival
         const timestampedOriginal = generateFilename('original', originalTitle);
         const timestampedTranslation = generateFilename('translation', originalTitle);
-        const timestampedThumbnail = generateFilename('thumbnail', originalTitle, 'png');
 
         fs.writeFileSync(path.join('output', timestampedOriginal), originalContent);
         fs.writeFileSync(path.join('output', timestampedTranslation), mdContent);
@@ -177,23 +188,16 @@ async function main() {
         console.log(`  ${timestampedOriginal}`);
         console.log(`  ${timestampedTranslation}`);
 
-        // Upload thumbnail if it exists
+        // Generate thumbnail
         let featureImageUrl = null;
-        const thumbnailPath = path.join('output', 'thumbnail-latest.png');
-        const timestampedThumbnailPath = path.join('output', timestampedThumbnail);
+        console.log(`\nGenerating thumbnail...`);
+        const thumbnail = await generateThumbnailForTitle(originalTitle);
+        console.log(`✓ Thumbnail generated: ${thumbnail.filename}`);
 
-        if (fs.existsSync(thumbnailPath)) {
-            console.log(`\nUploading thumbnail...`);
-            featureImageUrl = await uploadImage(thumbnailPath);
-            console.log(`✓ Thumbnail uploaded: ${featureImageUrl}`);
-
-            // Save timestamped thumbnail
-            fs.copyFileSync(thumbnailPath, timestampedThumbnailPath);
-            console.log(`✓ Saved: ${timestampedThumbnail}`);
-        } else {
-            console.log('\nWarning: No thumbnail found (thumbnail-latest.png)');
-            console.log('  Run generate-thumbnail.js first to create one');
-        }
+        // Upload thumbnail
+        console.log(`Uploading thumbnail...`);
+        featureImageUrl = await uploadImage(thumbnail.path);
+        console.log(`✓ Thumbnail uploaded: ${featureImageUrl}`);
 
         // Prepare for publishing
         const title = `[번역] ${originalTitle}`;
